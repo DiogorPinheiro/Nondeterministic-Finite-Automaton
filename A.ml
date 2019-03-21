@@ -69,6 +69,39 @@ let x = [1,2,3,4,5,6]
 let () = printf "%d" is_possivel transicao x
 *)
 
+let rec transicao_Epsilon vertice transicao vizinhos =
+    let (v1, v2, v3) = vertice in
+    match transicao with 
+      | []-> vizinhos
+      | (a1,a2,a3,a4,a5,a6) :: resto -> let vizinhos =
+        if( a3 = '_') then 
+          vizinhos@[(v1, v2, v3)]
+        else
+          vizinhos in
+        let vizinhos = transicao_Epsilon vertice resto vizinhos in
+
+
+let rec transicao_Possivel vertice transicao palavra  vizinhos =
+    let (v1, v2, v3) = vertice in
+    match transicao with 
+      | [] -> vizinhos
+      | (a1,a2,a3,a4,a5,a6)::resto -> let vizinhos = 
+        if v1 = a1 && (String.get palavra v3) = a2 && conversao_booleano a3 v2 a4 then 
+          if a5 = (-1) then
+            vizinhos@[(v1, v2, v3+1)]
+          else
+            vizinhos@[(v1, a5, v3+1)]  
+        else 
+          vizinhos in
+          let vizinhos = transicao_Possivel vertice resto palavra vizinhos in
+
+
+
+
+
+
+            
+
 
 
 (* Funcões de leitura adicionais (para testes) *)
@@ -79,10 +112,11 @@ let rec print_arr lis =
   | h::t -> printf "%d " h ;print_arr t
 let () = print_arr so  
 *)
-(*)
+
 let rec print_list lista =
     match lista with
     | [] -> printf "\n"
     | (a1,a2,a3,a4,a5,a6)::resto -> let () = printf "(%d, %c, %c, %d, %d, %d)\n" a1 a2 a3 a4 a5 a6 in print_list resto
 let () = print_list transicoes 
-*)
+    
+
