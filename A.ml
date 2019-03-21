@@ -35,6 +35,7 @@ let rec armazenar_transicoes transicoes card_trans = (* Armazenar Transições *
      
 let transicoes = armazenar_transicoes transicoes card_trans
 let palavra = scanf " %s" (fun palavra -> palavra) (* String final *)
+let length = String.length palavra  (*Nº de caracteres na palavra *)
 (*--------------------------------------------------------------------------------------------*)
 
 let estado_atual = [] (* Lista com estados atuais constituídos por um tuple (a,x)  *)
@@ -45,10 +46,10 @@ let rec num_vizinhos num transicoes cont = (* Encontrar número de vizinhos *)
        [] -> cont
        |(a1,a2,a3,a4,a5,a6)::tl -> if a1 = num then num_vizinhos num tl (cont+1) else num_vizinhos num tl cont
 
-let rec is_estadofinal a1 estado = (* Verificar se é estado final (se pertence à lista de estados finais)*)
+let rec is_estadofinal estadofinal estado = (* Verificar se é estado final (se pertence à lista de estados finais)*)
     match estado with
       |[] -> false
-      |h::tl -> if h=a1 then true else is_estadofinal a1 tl
+      |(v1,v2,v3)::tl -> if (List.mem v1 estadofinal) then true else is_estadofinal estadofinal tl
  
 let conversao_booleano operacao a b = (*Converter operacao por booleano -> Evitar caso != que nao tem significado desejado em ocaml*)
     match operacao with
@@ -61,7 +62,7 @@ let conversao_booleano operacao a b = (*Converter operacao por booleano -> Evita
     | ">=" -> a>=b
     | _ -> false
 
-let rec transicao_Epsilon vertice transicao vizinhos =
+let rec transicao_epsilon vertice transicao vizinhos =
     let (v1, v2, v3) = vertice in
     match transicao with 
       | []-> vizinhos
@@ -70,10 +71,9 @@ let rec transicao_Epsilon vertice transicao vizinhos =
           vizinhos@[(v1, v2, v3)]
         else
           vizinhos in
-        let vizinhos = transicao_Epsilon vertice resto vizinhos in
+        let vizinhos = transicao_epsilon vertice resto vizinhos in
 
-
-let rec transicao_Possivel vertice transicao palavra  vizinhos =
+let rec transicao_possivel vertice transicao palavra  vizinhos =
     let (v1, v2, v3) = vertice in
     match transicao with 
       | [] -> vizinhos
@@ -84,20 +84,21 @@ let rec transicao_Possivel vertice transicao palavra  vizinhos =
           else
             vizinhos@[(v1, a5, v3+1)]  
         else 
-          vizinhos in
-          let vizinhos = transicao_Possivel vertice resto palavra vizinhos in
+          vizinhos 
+        let vizinhos = transicao_possivel vertice resto palavra vizinhos in
 
-
-
-
-let rec main palavra estado transicoes i length =
-    if palavra = "" || estado = [] then
-      let estado = transicao_Epsilon in 
-      is_estado final 
+let rec main palavra estado transicoes length estadofinal =
+  let (v1,v2,v3) = estado in  
+  if v3 = length || estado = [] then
+      let estado = transicao_Epsilon estado transicoes estado in 
+      is_estadofinal estadofinal estado
+  else
+      let estado = transicao_epsilon estado transicoes estado in
+      let estado = transicao_possivel estado transicoes palavra [] in
+      main palavra estado transicoes length
 
 (* Obter resposta final ao problema *)         
-(* let () = if funcao main the printf "YES\n" else printf "NO\n" *)
-
+(let () = if (main palavra estado transicoes length f) then printf "YES\n" else printf "NO\n" 
 
 
 (* Funcões de leitura adicionais (para testes) *)
