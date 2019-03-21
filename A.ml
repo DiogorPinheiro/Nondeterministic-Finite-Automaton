@@ -3,14 +3,14 @@ open Scanf
 open List
 
 (* --------------  Leitura e armazenamento de dados  -------------------------------*)
-let n = scanf " %d" (fun n -> n)
+let n = scanf " %d" (fun n -> n)                    (* Número de estados *)
 
 let card_so = scanf " %d" (fun card_so -> card_so)  (* Cardinalidade de estados iniciais *)
-let so = []                                         (* Lista de estados iniciais *)
+let so = []                                         (* Lista de estados iniciais  (estado, valor interno, posicao do caracter desejado na palavra) *)
 let x,y,z = scanf " %d %d %d" (fun x y z -> x, y, z) 
-let so = so @ [x]
-let so = so @ [y]
-let so = so @ [z]
+let so = so @ [(x,0,0)]
+let so = so @ [(y,0,0)]
+let so = so @ [(z,0,0)]
 
 let card_f = scanf " %d" (fun card_f -> card_f)     (* Cardinalidade de estados finais *)
 let f = []                                          (* Lista de estados finais *)
@@ -34,7 +34,7 @@ let rec armazenar_transicoes transicoes card_trans = (* Armazenar Transições *
     else transicoes
      
 let transicoes = armazenar_transicoes transicoes card_trans
-let string_final = scanf " %s" (fun string_final -> string_final) (* String final *)
+let palavra = scanf " %s" (fun palavra -> palavra) (* String final *)
 (*--------------------------------------------------------------------------------------------*)
 
 let estado_atual = [] (* Lista com estados atuais constituídos por um tuple (a,x)  *)
@@ -45,8 +45,8 @@ let rec num_vizinhos num transicoes cont = (* Encontrar número de vizinhos *)
        [] -> cont
        |(a1,a2,a3,a4,a5,a6)::tl -> if a1 = num then num_vizinhos num tl (cont+1) else num_vizinhos num tl cont
 
-let rec is_estadofinal a1 f = (* Verificar se é estado final (se pertence à lista de estados finais)*)
-    match f with
+let rec is_estadofinal a1 estado = (* Verificar se é estado final (se pertence à lista de estados finais)*)
+    match estado with
       |[] -> false
       |h::tl -> if h=a1 then true else is_estadofinal a1 tl
  
@@ -60,14 +60,6 @@ let conversao_booleano operacao a b = (*Converter operacao por booleano -> Evita
     | "<=" -> a <= b
     | ">=" -> a>=b
     | _ -> false
-(*
-let is_possivel transicao f =
-    let (a1,a2,a3,a4,a5,a6) = f in
-    if a1 = 2 the 1 else 0
-    
-let x = [1,2,3,4,5,6]
-let () = printf "%d" is_possivel transicao x
-*)
 
 let rec transicao_Epsilon vertice transicao vizinhos =
     let (v1, v2, v3) = vertice in
@@ -98,9 +90,13 @@ let rec transicao_Possivel vertice transicao palavra  vizinhos =
 
 
 
+let rec main palavra estado transicoes i length =
+    if palavra = "" || estado = [] then
+      let estado = transicao_Epsilon in 
+      is_estado final 
 
-
-            
+(* Obter resposta final ao problema *)         
+(* let () = if funcao main the printf "YES\n" else printf "NO\n" *)
 
 
 
@@ -112,11 +108,11 @@ let rec print_arr lis =
   | h::t -> printf "%d " h ;print_arr t
 let () = print_arr so  
 *)
-
+(*
 let rec print_list lista =
     match lista with
     | [] -> printf "\n"
     | (a1,a2,a3,a4,a5,a6)::resto -> let () = printf "(%d, %c, %c, %d, %d, %d)\n" a1 a2 a3 a4 a5 a6 in print_list resto
-let () = print_list transicoes 
+let () = print_list transicoes *)
     
 
