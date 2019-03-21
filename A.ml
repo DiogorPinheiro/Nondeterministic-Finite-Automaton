@@ -38,9 +38,6 @@ let palavra = scanf " %s" (fun palavra -> palavra) (* String final *)
 let length = String.length palavra  (*Nº de caracteres na palavra *)
 (*--------------------------------------------------------------------------------------------*)
 
-let estado_atual = [] (* Lista com estados atuais constituídos por um tuple (a,x)  *)
-(* a = estado atual (valor correspondente do caracter na string; x = valor inteiro que será atualizado*)
-
 let rec num_vizinhos num transicoes cont = (* Encontrar número de vizinhos *)
   match transicoes with
        [] -> cont
@@ -73,7 +70,7 @@ let rec transicao_epsilon vertice transicao vizinhos =
           vizinhos in
         let vizinhos = transicao_epsilon vertice resto vizinhos in
 
-let rec transicao_possivel vertice transicao palavra  vizinhos =
+let rec transicao_possivel vertice transicao palavra vizinhos =
     let (v1, v2, v3) = vertice in
     match transicao with 
       | [] -> vizinhos
@@ -98,7 +95,7 @@ let rec main palavra estado transicoes length estadofinal =
       main palavra estado transicoes length
 
 (* Obter resposta final ao problema *)         
-(let () = if (main palavra estado transicoes length f) then printf "YES\n" else printf "NO\n" 
+let () = if (main palavra so transicoes length f) then printf "YES\n" else printf "NO\n" 
 
 
 (* Funcões de leitura adicionais (para testes) *)
