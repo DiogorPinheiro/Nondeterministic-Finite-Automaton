@@ -59,7 +59,12 @@ let conversao_booleano operacao a b = (*Converter operacao por booleano -> Evita
     | ">=" -> a>=b
     | _ -> false
 
-let rec transicao_epsilon vertice transicao vizinhos =
+let rec obter_estado estado vizinhos =
+    match estado with 
+    |[]-> vizinhos
+    |(v1,v2,v3)::resto -> let vizinhos = if (List.mem (v1,v2,v3) estado) then vizinhos else vizinhos@[(v1,v2,v3)]
+
+let rec transicao_epsilon vertice transicao vizinhos =  (* Obter transições epsilon *)
     let (v1, v2, v3) = vertice in
     match transicao with 
       | []-> vizinhos
@@ -70,32 +75,35 @@ let rec transicao_epsilon vertice transicao vizinhos =
           vizinhos in
         let vizinhos = transicao_epsilon vertice resto vizinhos in
 
-let rec transicao_possivel vertice transicao palavra vizinhos =
+let rec transicao_possivel vertice transicao palavra vizinhos = (* Obter transições com caracter *)
     let (v1, v2, v3) = vertice in
+    (*Usar funcao obter_estado *)
     match transicao with 
       | [] -> vizinhos
       | (a1,a2,a3,a4,a5,a6)::resto -> let vizinhos = 
-        if v1 = a1 && (String.get palavra v3) = a2 && conversao_booleano a3 v2 a4 then 
+        if v1 = a1 && (String.get palavra v3) = a2 && conversao_booleano a3 v2 a4 then  (* Verificar condições para poder usar transição*) 
           if a5 = (-1) then
             vizinhos@[(v1, v2, v3+1)]
           else
             vizinhos@[(v1, a5, v3+1)]  
         else 
-          vizinhos 
-        let vizinhos = transicao_possivel vertice resto palavra vizinhos in
+          vizinhos in
+        transicao_possivel vertice resto palavra vizinhos
+(* Colocar função para percorrer todos os elementos*)
 
 let rec main palavra estado transicoes length estadofinal =
   let (v1,v2,v3) = estado in  
+  (*Usar funcao obter estado *)
   if v3 = length || estado = [] then
       let estado = transicao_Epsilon estado transicoes estado in 
       is_estadofinal estadofinal estado
   else
       let estado = transicao_epsilon estado transicoes estado in
       let estado = transicao_possivel estado transicoes palavra [] in
-      main palavra estado transicoes length
+      main palavra estado transicoes length estadofinal 
 
 (* Obter resposta final ao problema *)         
-let () = if (main palavra so transicoes length f) then printf "YES\n" else printf "NO\n" 
+let () = if main palavra so transicoes length f then printf "YES\n" else printf "NO\n" 
 
 
 (* Funcões de leitura adicionais (para testes) *)
