@@ -64,8 +64,14 @@ let rec obter_estado estado vizinhos =
     |[]-> vizinhos
     |(v1,v2,v3)::resto -> let vizinhos = if (List.mem (v1,v2,v3) estado) then vizinhos else vizinhos@[(v1,v2,v3)]
 
+let obter_resto estado  =
+  match estado with
+  | [] -> estado
+  | (v1,v2,v3)::resto -> resto
+
 let rec transicao_epsilon vertice transicao vizinhos =  (* Obter transições epsilon *)
     let (v1, v2, v3) = vertice in
+    let resto = obter_resto vertice in
     match transicao with 
       | []-> vizinhos
       | (a1,a2,a3,a4,a5,a6) :: resto -> let vizinhos =
@@ -76,7 +82,7 @@ let rec transicao_epsilon vertice transicao vizinhos =  (* Obter transições ep
         let vizinhos = transicao_epsilon vertice resto vizinhos in
 
 let rec transicao_possivel vertice transicao palavra vizinhos = (* Obter transições com caracter *)
-    let (v1, v2, v3) = vertice in
+    let (v1, v2, v3) = obter_estado vertice vizinhos in
     (*Usar funcao obter_estado *)
     match transicao with 
       | [] -> vizinhos
