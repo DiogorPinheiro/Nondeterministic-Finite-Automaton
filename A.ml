@@ -58,35 +58,35 @@ let conversao_booleano operacao a b = (*Converter operacao por booleano -> Evita
     | "<=" -> a <= b
     | ">=" -> a>=b
     | _ -> false
-
+(* ---------------------Percorrer transições epsilon ----------------------------- *)
 let rec obter_estadoepsilon estado vizinhos transicoes =
     match estado with 
     |[]-> vizinhos
-    |(v1,v2,v3)::resto -> let vizinhos = if (List.mem (v1,v2,v3) estado) then vizinhos else vizinhos@[(v1,v2,v3)]
+    |(v1,v2,v3)::resto -> let vizinhos = if (List.mem (v1,v2,v3) estado) then vizinhos else vizinhos@[(v1,v2,v3)] in
+    transicao_epsilon v1 v2 v3 transicoes vizinhos resto
 
-let obter_resto estado  =
-  match estado with
-  | [] -> estado
-  | (v1,v2,v3)::resto -> resto
-
-let rec transicao_epsilon vertice transicao vizinhos =  (* Obter transições epsilon *)
-    let (v1, v2, v3) = vertice in
-    let resto = obter_resto vertice in
+let rec transicao_epsilon v1 v2 v3 transicao vizinhos restor =  (* Obter transições epsilon *)
     match transicao with 
       | []-> vizinhos
-      | (a1,a2,a3,a4,a5,a6) :: resto -> let vizinhos =
-        if( a3 = '_') then 
-          vizinhos@[(v1, v2, v3)]
-        else
-          vizinhos in
-        let vizinhos = transicao_epsilon vertice resto vizinhos in
+      | (a1,a2,a3,a4,a5,a6)::resto -> let vizinhos =
+        if( a3 = '_') && v1 = a1 then 
+          if a5=(-1) then vizinhos@[(v1, v2, v3)] else vizinhos
+        else  
+          vizinhos in transicao_epsilon v1 v2 v3 resto vizinhos restor 
+        let vizinhos = transicao_epsilon v1 v2 v3 transicao vizinhos restor in obter_estadoepsilon restor vizinhos transicao
+      
+let rec distribuicao_vizinhos estado anterior transicao =
+    let estado = obter_estadoepsilon estado [] transicao
+    if estado <> anterior then let anterior = estado in distribuicao_vizinhos estado anterior transicao
+    else estado
 
+(*------------------------ Obter caracteres ----------------------------------------*)        
 let rec obter_estado estado vizinhos transicoes palavra =
   match estado with
   |[]-> vizinhos
-  |(v1,v2,v3)::resto -> transicao_possivel vizinhos transicao v1 palavra
+  |(v1,v2,v3)::resto -> transicao_possivel vizinhos transicao v1 v3 palavra resto
   
-let rec transicao_possivel vizinhos transicao v1 palavra = (* Obter transições com caracter *)
+let rec transicao_possivel vizinhos transicao v1 v3 palavra restor= (* Obter transições com caracter *)
     match transicao with 
       | [] -> vizinhos
       | (a1,a2,a3,a4,a5,a6)::resto -> let vizinhos = 
@@ -96,12 +96,12 @@ let rec transicao_possivel vizinhos transicao v1 palavra = (* Obter transições
           else
             vizinhos@[(v1, a5, v3+1)]  
         else 
-          vizinhos in transicao_possivel vizinhos transicao v1 palavra
+          vizinhos in transicao_possivel vizinhos transicao v1 v3 palavra restor
       in 
-        let vizinhos = transicao_possivel vizinhos transicao v1 palavra in
-        obter_estado resto vizinhos transicoes palavra
+        let vizinhos = transicao_possivel vizinhos transicao v1 v3 palavra restor in
+        obter_estado restor vizinhos transicao palavra restor
         
-(* Colocar função para percorrer todos os elementos*)
+(*------------------------------------------------------------------------------ *)
 
 let rec main palavra estado transicoes length estadofinal =
   let (v1,v2,v3) = estado in  
@@ -111,7 +111,7 @@ let rec main palavra estado transicoes length estadofinal =
       is_estadofinal estadofinal estado
   else
       let estado = transicao_epsilon estado transicoes estado in
-      let estado = transicao_possivel estado transicoes palavra [] in
+      let estado = obter_estado estado [] transicoes palavra [] in
       main palavra estado transicoes length estadofinal 
 
 (* Obter resposta final ao problema *)         
