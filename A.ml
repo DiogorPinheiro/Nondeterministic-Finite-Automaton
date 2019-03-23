@@ -59,7 +59,7 @@ let conversao_booleano operacao a b = (*Converter operacao por booleano -> Evita
     | ">=" -> a>=b
     | _ -> false
 
-let rec obter_estado estado vizinhos =
+let rec obter_estadoepsilon estado vizinhos transicoes =
     match estado with 
     |[]-> vizinhos
     |(v1,v2,v3)::resto -> let vizinhos = if (List.mem (v1,v2,v3) estado) then vizinhos else vizinhos@[(v1,v2,v3)]
@@ -81,9 +81,12 @@ let rec transicao_epsilon vertice transicao vizinhos =  (* Obter transições ep
           vizinhos in
         let vizinhos = transicao_epsilon vertice resto vizinhos in
 
-let rec transicao_possivel vertice transicao palavra vizinhos = (* Obter transições com caracter *)
-    let (v1, v2, v3) = obter_estado vertice vizinhos in
-    (*Usar funcao obter_estado *)
+let rec obter_estado estado vizinhos transicoes palavra =
+  match estado with
+  |[]-> vizinhos
+  |(v1,v2,v3)::resto -> transicao_possivel vizinhos transicao v1 palavra
+  
+let rec transicao_possivel vizinhos transicao v1 palavra = (* Obter transições com caracter *)
     match transicao with 
       | [] -> vizinhos
       | (a1,a2,a3,a4,a5,a6)::resto -> let vizinhos = 
@@ -93,8 +96,11 @@ let rec transicao_possivel vertice transicao palavra vizinhos = (* Obter transi�
           else
             vizinhos@[(v1, a5, v3+1)]  
         else 
-          vizinhos in
-        transicao_possivel vertice resto palavra vizinhos
+          vizinhos in transicao_possivel vizinhos transicao v1 palavra
+      in 
+        let vizinhos = transicao_possivel vizinhos transicao v1 palavra in
+        obter_estado resto vizinhos transicoes palavra
+        
 (* Colocar função para percorrer todos os elementos*)
 
 let rec main palavra estado transicoes length estadofinal =
