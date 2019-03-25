@@ -59,27 +59,32 @@ let conversao_booleano operacao a b = (*Converter operacao por booleano -> Evita
     | ">=" -> a>=b
     | _ -> false
 (* ---------------------Percorrer transições epsilon ----------------------------- *)
-let rec transicao_epsilon v1 v2 v3 transicao vizinhos restor =  (* Obter transições epsilon *)
-    let rec transicao_epsilondois v1 v2 v3 transicao vizinhos restor =  
-       match transicao with 
-        | []-> vizinhos
-        | (a1,a2,a3,a4,a5,a6)::resto -> let vizinhos =
-          if( a3 = '_') && v1 = a1 then 
-            if a5=(-1) then vizinhos@[(v1, v2, v3)] else vizinhos
-          else  
-            vizinhos in transicao_epsilondois v1 v2 v3 resto vizinhos restor in
-          let vizinhos = transicao_epsilondois v1 v2 v3 transicao vizinhos restor in obter_estadoepsilon restor vizinhos transicao
-
-and obter_estadoepsilon estado vizinhos transicoes =
+let rec obter_estadoepsilon estado vizinhos transicoes =
   match estado with 
   |[]-> vizinhos
   |(v1,v2,v3)::resto -> let vizinhos = if (List.mem (v1,v2,v3) estado) then vizinhos else vizinhos@[(v1,v2,v3)] in
-    transicao_epsilon v1 v2 v3 transicoes vizinhos resto
-                  
+    let vizinhos = transicao_epsilon v1 v2 v3 transicoes vizinhos in obter_estadoepsilon resto vizinhos transicoes
+
+and transicao_epsilon v1 v2 v3 transicao vizinhos =  
+  match transicao with 
+    | []-> vizinhos
+    | (a1,a2,a3,a4,a5,a6)::resto -> 
+      let vizinhos = if( a3 = '_') && v1 = a1 
+        then 
+          if a5=(-1) then 
+            vizinhos@[(v1, v2, v3)] 
+          else 
+            vizinhos
+        else  
+          vizinhos 
+      in transicao_epsilon v1 v2 v3 resto vizinhos 
+                           
 let rec distribuicao_vizinhos estado anterior transicao =
     let estado = obter_estadoepsilon estado [] transicao in
-    if estado <> anterior then let anterior = estado in distribuicao_vizinhos estado anterior transicao
-    else estado
+    if estado <> anterior then 
+      let anterior = estado in distribuicao_vizinhos estado anterior transicao
+    else 
+      estado
 
 (*------------------------ Obter caracteres ----------------------------------------*)        
 let rec obter_estado estado vizinhos transicoes palavra =
@@ -102,8 +107,7 @@ and transicao_possivel vizinhos transicao v1 v2 v3 palavra = (* Obter transiçõ
         else 
           vizinhos 
       in transicao_possivel vizinhos resto v1 v2 v3 palavra
-         
-        
+             
 (*------------------------------------------------------------------------------ *)
 
 let rec main palavra estado transicoes length estadofinal =
