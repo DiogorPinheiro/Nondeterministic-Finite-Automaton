@@ -59,7 +59,14 @@ let conversao_booleano operacao a b = (*Converter operacao por booleano -> Evita
     | ">=" -> a >= b
     | _ -> false
 (* ---------------------Percorrer transições epsilon ----------------------------- *)
-let rec obter_estadoepsilon estado vizinhos transicoes =
+let rec distribuicao_vizinhos estado anterior transicao =
+  let estado = obter_estadoepsilon estado [] transicao in
+  if estado <> anterior then 
+    let anterior = estado in distribuicao_vizinhos estado anterior transicao
+  else 
+    estado
+
+and obter_estadoepsilon estado vizinhos transicoes =
   match estado with 
   |[]-> vizinhos
   |(v1,v2,v3)::resto -> let vizinhos = if (List.mem (v1,v2,v3) estado) then vizinhos else vizinhos@[(v1,v2,v3)] in
@@ -79,13 +86,6 @@ and transicao_epsilon v1 v2 v3 transicao vizinhos =
           vizinhos 
       in transicao_epsilon v1 v2 v3 resto vizinhos 
                            
-let rec distribuicao_vizinhos estado anterior transicao =
-    let estado = obter_estadoepsilon estado [] transicao in
-    if estado <> anterior then 
-      let anterior = estado in distribuicao_vizinhos estado anterior transicao
-    else 
-      estado
-
 (*------------------------ Obter caracteres ----------------------------------------*)        
 let rec obter_estado estado vizinhos transicoes palavra =
   match estado with
@@ -110,19 +110,18 @@ and transicao_possivel vizinhos transicao v1 v2 v3 palavra = (* Obter transiçõ
              
 (*------------------------------------------------------------------------------ *)
 
-let rec main palavra estado holder transicoes length estadofinal =
-  let (v1,v2,v3) = holder in
-  let w1 = v1 in
-  let w2 = v2 in
-  let w3 = v3 in
-  if w3 = length || estado = [] then
-      let estado = distribuicao_vizinhos estado estado transicoes in 
-      is_estadofinal estadofinal estado
-  else
-      let estado = distribuicao_vizinhos estado estado transicoes in
-      let estado = obter_estado estado [] transicoes palavra in
-      main palavra estado estado transicoes length estadofinal 
-
+let rec main palavra estado transicoes length estadofinal =
+  match estado with
+  |[] -> let estado = distribuicao_vizinhos estado estado transicoes in 
+        is_estadofinal estadofinal estado
+  |(v1,v2,v3)::resto-> if v3 = length 
+      then
+        let estado = distribuicao_vizinhos estado estado transicoes in 
+          is_estadofinal estadofinal estado 
+      else
+        let estado = distribuicao_vizinhos estado estado transicoes in
+        let estado = obter_estado estado [] transicoes palavra in
+        main palavra estado transicoes length estadofinal 
 (* Obter resposta final ao problema *)         
 let () = if main palavra so transicoes length f then printf "YES\n" else printf "NO\n" 
 
