@@ -25,7 +25,7 @@ let transicoes = []
 
 let rec armazenar_transicoes transicoes card_trans = (* Armazenar Transições *)
     if card_trans > 0 then
-        let a1,a2,a3,a4,a5,a6 = scanf " %d %c %c %c %c %d " (fun a1 a2 a3 a4 a5 a6 -> a1,a2,a3,a4,a5,a6) in 
+        let a1,a2,a3,a4,a5,a6 = scanf " %d %c %s %c %c %d " (fun a1 a2 a3 a4 a5 a6 -> a1,a2,a3,a4,a5,a6) in 
         let a4 = if a4 = '_' then (-1) else (int_of_char a4 - 48) in (* Converter para decimal *)
         let a5 = if a5 = '_' then (-1) else (int_of_char a5 - 48) in
         let x = (a1,a2,a3,a4,a5,a6) in 
@@ -33,7 +33,7 @@ let rec armazenar_transicoes transicoes card_trans = (* Armazenar Transições *
         armazenar_transicoes transicoes (card_trans-1) 
     else transicoes
      
-let transicoes = armazenar_transicoes transicoes card_trans
+let (transicoes: (int * char * string * int * int * int) list)  = armazenar_transicoes transicoes card_trans
 let palavra = scanf " %s" (fun palavra -> palavra) (* String final *)
 let length = String.length palavra  (*Nº de caracteres na palavra *)
 (*--------------------------------------------------------------------------------------------*)
@@ -85,23 +85,24 @@ let rec distribuicao_vizinhos estado anterior transicao =
 let rec obter_estado estado vizinhos transicoes palavra =
   match estado with
   |[]-> vizinhos
-  |(v1,v2,v3)::resto -> transicao_possivel vizinhos transicoes v1 v2 v3 palavra resto
+  |(v1,v2,v3)::resto -> 
+    let vizinhos = transicao_possivel vizinhos transicoes v1 v2 v3 palavra in 
+    obter_estado resto vizinhos transicoes palavra
   
-and transicao_possivel vizinhos transicao v1 v2 v3 palavra restor = (* Obter transições com caracter *)
-  let rec transicao_possiveldois vizinhos transicao v1 v2 v3 palavra restor = 
-      match transicao with 
-      | [] -> vizinhos
-      | (a1,a2,a3,a4,a5,a6)::resto -> let vizinhos = 
-        if v1 = a1 && (String.get palavra v3) = a2 && conversao_booleano a3 v2 a4 then  (* Verificar condições para poder usar transição*) 
+and transicao_possivel vizinhos transicao v1 v2 v3 palavra = (* Obter transições com caracter *)
+  match transicao with 
+    | [] -> vizinhos
+    | (a1,a2,a3,a4,a5,a6)::resto -> 
+      let vizinhos = if v1 = a1 && (String.get palavra v3) = a2 && conversao_booleano a3 v2 a4 
+        then  (* Verificar condições para poder usar transição*) 
           if a5 = (-1) then
             vizinhos@[(v1, v2, v3+1)]
           else
             vizinhos@[(v1, a5, v3+1)]  
         else 
-          vizinhos in transicao_possiveldois vizinhos resto v1 v2 v3 palavra restor
-      in 
-        let vizinhos = transicao_possiveldois vizinhos transicao v1 v2 v3 palavra restor in
-        obter_estado restor vizinhos transicao palavra 
+          vizinhos 
+      in transicao_possivel vizinhos resto v1 v2 v3 palavra
+         
         
 (*------------------------------------------------------------------------------ *)
 
