@@ -50,13 +50,13 @@ let rec is_estadofinal estadofinal estado = (* Verificar se é estado final (se 
  
 let conversao_booleano operacao a b = (*Converter operacao por booleano -> Evitar caso != que nao tem significado desejado em ocaml*)
     match operacao with
-    | "_" -> true
+    | "_"  -> true
     | "!=" -> a <> b
-    | "<" -> a < b
-    | ">" -> a > b
-    | "=" -> a = b
+    | "<"  -> a < b
+    | ">"  -> a > b
+    | "="  -> a = b
     | "<=" -> a <= b
-    | ">=" -> a>=b
+    | ">=" -> a >= b
     | _ -> false
 (* ---------------------Percorrer transições epsilon ----------------------------- *)
 let rec obter_estadoepsilon estado vizinhos transicoes =
@@ -69,7 +69,7 @@ and transicao_epsilon v1 v2 v3 transicao vizinhos =
   match transicao with 
     | []-> vizinhos
     | (a1,a2,a3,a4,a5,a6)::resto -> 
-      let vizinhos = if( a3 = '_') && v1 = a1 
+      let vizinhos = if( a2 = '_') && v1 = a1 
         then 
           if a5=(-1) then 
             vizinhos@[(v1, v2, v3)] 
@@ -110,19 +110,18 @@ and transicao_possivel vizinhos transicao v1 v2 v3 palavra = (* Obter transiçõ
              
 (*------------------------------------------------------------------------------ *)
 
-let rec main palavra estado transicoes length estadofinal =
-  let (v1,v2,v3) = estado in
+let rec main palavra estado holder transicoes length estadofinal =
+  let (v1,v2,v3) = holder in
   let w1 = v1 in
   let w2 = v2 in
   let w3 = v3 in
-  let estado = [(v1,v2,v3)] in   
   if w3 = length || estado = [] then
       let estado = distribuicao_vizinhos estado estado transicoes in 
       is_estadofinal estadofinal estado
   else
       let estado = distribuicao_vizinhos estado estado transicoes in
       let estado = obter_estado estado [] transicoes palavra in
-      main palavra estado transicoes length estadofinal 
+      main palavra estado estado transicoes length estadofinal 
 
 (* Obter resposta final ao problema *)         
 let () = if main palavra so transicoes length f then printf "YES\n" else printf "NO\n" 
