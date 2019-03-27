@@ -7,23 +7,29 @@ let n = scanf " %d" (fun n -> n)                    (* Número de estados *)
 
 let card_so = scanf " %d" (fun card_so -> card_so)  (* Cardinalidade de estados iniciais *)
 let so = []                                         (* Lista de estados iniciais  (estado, valor interno, posicao do caracter desejado na palavra) *)
-let x,y,z = scanf " %d %d %d" (fun x y z -> x, y, z) 
-let so = so @ [(x,0)]
-let so = so @ [(y,0)]
-let so = so @ [(z,0)]
+
+let rec leitura_so so card_so =
+   if card_so = 0 then
+    so
+  else
+    let x = scanf " %d" (fun x -> x) in
+    let so = so@[(x,0)] in
+   leitura_so so (card_so-1)
+
+let so = leitura_so [] card_so 
+
 
 let card_f = scanf " %d" (fun card_f -> card_f)     (* Cardinalidade de estados finais *)
-let f = []                                          (* Lista de estados finais *)
 
-let x1,y1,z1 = scanf " %d %d %d" (fun x1 y1 z1 -> x1, y1, z1) 
-let f = f @ [x1]
-let f = f @ [y1]
-let f = f @ [z1]
-let rec print_estados estado =
-  match estado with
-  | []->printf "\n"
-  | (v1,v2)::resto -> let () = printf "(%d,%d)\n" v1 v2 in print_estados resto 
+let rec leitura_f f card_f=
+  if card_f = 0 then
+   f
+ else
+   let x = scanf " %d" (fun x -> x) in
+   let f = f@[x] in
+  leitura_f f (card_f-1)
 
+let f = leitura_f [] card_f 
 
 let card_trans = scanf " %d" (fun card_trans -> card_trans) (* Número de transições *)
 let transicoes = []
@@ -43,10 +49,11 @@ let palavra = scanf " %s" (fun palavra -> palavra) (* String final *)
 let length = String.length palavra  (*Nº de caracteres na palavra *)
 (*--------------------------------------------------------------------------------------------*)
 
-let rec num_vizinhos num transicoes cont = (* Encontrar número de vizinhos *)
+let rec num_vizinhosepsilon estado transicoes cont = (* Encontrar número de vizinhos *)
+  let (v1,v2) = estado in
   match transicoes with
        [] -> cont
-       | (a1,a2,a3,a4,a5,a6)::tl -> if a1 = num  then num_vizinhos num tl (cont+1) else num_vizinhos num tl cont
+       | (a1,a2,a3,a4,a5,a6)::tl -> if a1 = v1 && a2 = '_' then num_vizinhos estado tl (cont+1) else num_vizinhos estado tl cont
 
 let rec is_estadofinal estadofinal estado = (* Verificar se é estado final (se pertence à lista de estados finais)*)
     match estado with
@@ -65,8 +72,6 @@ let conversao_booleano operacao a b = (*Converter operacao por booleano -> Evita
     | _ -> false
 (* ---------------------Percorrer transições epsilon ----------------------------- *)
 let rec distribuicao_vizinhos estado anterior transicao =
-  (*let () = printf "Entrou distribuicao_vizinhos\n" in*)
-  (*let () = print_estados estado in*)
   let estado = obter_estadoepsilon estado [] transicao in
   if estado <> anterior then 
     let anterior = estado in distribuicao_vizinhos estado anterior transicao
@@ -82,7 +87,6 @@ and obter_estadoepsilon estado vizinhos transicoes =
     obter_estadoepsilon resto vizinhos transicoes 
 
 and transicao_epsilon v1 v2 transicao vizinhos =  
-  (*let () = printf "Entrou transicao_epsilon v1=%d v2=%d=%d\n" v1 v2 in*)
   match transicao with 
     | []->  vizinhos
     | (a1,a2,a3,a4,a5,a6)::restote -> 
@@ -107,7 +111,6 @@ let rec obter_estado estado vizinhos transicoes palavra v3 =
   match estado with
   | []-> vizinhos
   | (v1,v2)::resto -> 
-    (*let () = print_estados estado in*)
     let vizinhos = transicao_possivel vizinhos transicoes v1 v2 v3 palavra in 
     obter_estado resto vizinhos transicoes palavra v3
   
@@ -115,7 +118,6 @@ and transicao_possivel vizinhos transicao v1 v2 v3 palavra = (* Obter transiçõ
   match transicao with 
     | [] -> vizinhos
     | (a1,a2,a3,a4,a5,a6)::resto -> 
-      (*let () = print_estados vizinhos in*)
       let vizinhos =  if v1 = a1 && (String.get palavra v3) = a2 && conversao_booleano a3 v2 a4 
         then  (* Verificar condições para poder usar transição*) 
           if a5 = (-1) then
@@ -129,14 +131,16 @@ and transicao_possivel vizinhos transicao v1 v2 v3 palavra = (* Obter transiçõ
 (*------------------------------------------------------------------------------ *)
 
 let rec main palavra estado transicoes length estadofinal v3 =
-  if v3 = length || estado = [] then
-    let estado = distribuicao_vizinhos estado estado transicoes in 
-    let () = print_estados estado in is_estadofinal estadofinal estado
-  else      (*let () = printf "%d\n" v3 in*)
-    let estado = distribuicao_vizinhos estado estado transicoes in
-    (*let () = print_estados estado in*)
-    let estado = obter_estado estado [] transicoes palavra v3 in
-     main palavra estado transicoes length estadofinal (v3+1)
+  match estado with 
+  | [] -> let estado = distribuicao_vizinhos estado estado transicoes in 
+          is_estadofinal estadofinal estado
+  | _ -> if v3 = length then
+          let estado = distribuicao_vizinhos estado estado transicoes in 
+          is_estadofinal estadofinal estado
+        else    
+          let estado = distribuicao_vizinhos estado estado transicoes in 
+          let estado = obter_estado estado [] transicoes palavra v3 in
+          main palavra estado transicoes length estadofinal (v3+1)
 
 (* Obter resposta final ao problema *)         
 let () = if main palavra so transicoes length f 0 then printf "YES\n" else printf "NO\n" 
@@ -156,7 +160,12 @@ let rec print_transicoes lista =
     | (a1,a2,a3,a4,a5,a6)::resto -> let () = printf "(%d, %c, %s, %d, %d, %d)\n" a1 a2 a3 a4 a5 a6 in print_transicoes resto
 let () = print_transicoes transicoes *)
 
-
+(*
+let rec print_estados estado =
+  match estado with
+  | []->printf "\n"
+  | (v1,v2)::resto -> let () = printf "(%d)\n" v1 v2 in print_estados resto 
+*)
 
     
 
