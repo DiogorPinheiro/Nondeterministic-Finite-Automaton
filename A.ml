@@ -19,7 +19,6 @@ let x1,y1,z1 = scanf " %d %d %d" (fun x1 y1 z1 -> x1, y1, z1)
 let f = f @ [x1]
 let f = f @ [y1]
 let f = f @ [z1]
-
 let rec print_estados estado =
   match estado with
   | []->printf "\n"
@@ -67,25 +66,25 @@ let conversao_booleano operacao a b = (*Converter operacao por booleano -> Evita
 (* ---------------------Percorrer transições epsilon ----------------------------- *)
 let rec distribuicao_vizinhos estado anterior transicao =
   (*let () = printf "Entrou distribuicao_vizinhos\n" in*)
-  (* let () = print_estados estado in*)
-  let estado = obter_estadoepsilon estado [] transicao [] in
+  (*let () = print_estados estado in*)
+  let estado = obter_estadoepsilon estado [] transicao in
   if estado <> anterior then 
     let anterior = estado in distribuicao_vizinhos estado anterior transicao
   else 
     estado
 
-and obter_estadoepsilon estado vizinhos transicoes vizcopia =
-  (*let () = printf "Entrou obter_estadoepsilon\n" in*)
+and obter_estadoepsilon estado vizinhos transicoes =
+  
   match estado with 
-  | []-> vizcopia
-  | (v1,v2)::resto -> let vizinhos = if (List.mem (v1,v2) estado) then vizinhos else vizinhos@[(v1,v2)] in
-    let vizcopia = vizcopia@[(v1,v2)] in  
-    let vizinhos = transicao_epsilon v1 v2 transicoes vizinhos in obter_estadoepsilon resto vizinhos transicoes vizcopia
+  | []->  vizinhos
+  | (v1,v2)::resto -> let vizinhos = if (List.mem (v1,v2) vizinhos) then vizinhos else vizinhos@[(v1,v2)] in
+    let vizinhos = transicao_epsilon v1 v2 transicoes vizinhos in 
+    obter_estadoepsilon resto vizinhos transicoes 
 
 and transicao_epsilon v1 v2 transicao vizinhos =  
   (*let () = printf "Entrou transicao_epsilon v1=%d v2=%d=%d\n" v1 v2 in*)
   match transicao with 
-    | []-> vizinhos
+    | []->  vizinhos
     | (a1,a2,a3,a4,a5,a6)::restote -> 
       let vizinhos = if( a2 = '_') && v1 = a1 
         then 
@@ -105,7 +104,6 @@ and transicao_epsilon v1 v2 transicao vizinhos =
                            
 (*------------------------ Obter caracteres ----------------------------------------*)        
 let rec obter_estado estado vizinhos transicoes palavra v3 =
-  (*let () = printf "Entrou obter_estado \n" in*)
   match estado with
   | []-> vizinhos
   | (v1,v2)::resto -> 
@@ -131,24 +129,17 @@ and transicao_possivel vizinhos transicao v1 v2 v3 palavra = (* Obter transiçõ
 (*------------------------------------------------------------------------------ *)
 
 let rec main palavra estado transicoes length estadofinal v3 =
-  (*let () = printf "l = %d\n" length in
-  let () = printf "%d\n" v3 in*)
-  match estado with
-  | [] -> let estado = distribuicao_vizinhos estado estado transicoes in 
-       is_estadofinal estadofinal estado
-  | _ -> if v3 = length then
-            let estado = distribuicao_vizinhos estado estado transicoes in 
-            let () = print_estados estado in
-              is_estadofinal estadofinal estado 
-        else
-        let () = printf "%d\n" v3 in
-          let estado = distribuicao_vizinhos estado estado transicoes in
-          (*let () = print_estados estado in *)
-          let estado = obter_estado estado [] transicoes palavra v3 in
-          main palavra estado transicoes length estadofinal (v3+1)
+  if v3 = length || estado = [] then
+    let estado = distribuicao_vizinhos estado estado transicoes in 
+    let () = print_estados estado in is_estadofinal estadofinal estado
+  else      (*let () = printf "%d\n" v3 in*)
+    let estado = distribuicao_vizinhos estado estado transicoes in
+    (*let () = print_estados estado in*)
+    let estado = obter_estado estado [] transicoes palavra v3 in
+     main palavra estado transicoes length estadofinal (v3+1)
+
 (* Obter resposta final ao problema *)         
 let () = if main palavra so transicoes length f 0 then printf "YES\n" else printf "NO\n" 
-
 
 (* Funcões de leitura adicionais (para testes) *)
 (*
