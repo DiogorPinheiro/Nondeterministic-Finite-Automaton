@@ -6,9 +6,9 @@ open List
 let n = scanf " %d" (fun n -> n)                    (* Número de estados *)
 
 let card_so = scanf " %d" (fun card_so -> card_so)  (* Cardinalidade de estados iniciais *)
-let so = []                                         (* Lista de estados iniciais  (estado, valor interno, posicao do caracter desejado na palavra) *)
+let so = []                                         (* Lista de estados iniciais  (estado, valor interno) *)
 
-let rec leitura_so so card_so =
+let rec leitura_so so card_so =                     (* Leitura dos estados iniciais*)
    if card_so = 0 then
     so
   else
@@ -18,10 +18,9 @@ let rec leitura_so so card_so =
 
 let so = leitura_so [] card_so 
 
-
 let card_f = scanf " %d" (fun card_f -> card_f)     (* Cardinalidade de estados finais *)
 
-let rec leitura_f f card_f=
+let rec leitura_f f card_f =                        (* Leitura dos estados finais *)     
   if card_f = 0 then
    f
  else
@@ -44,16 +43,15 @@ let rec armazenar_transicoes transicoes card_trans = (* Armazenar Transições *
         armazenar_transicoes transicoes (card_trans-1) 
     else transicoes
      
-let (transicoes: (int * char * string * int * int * int) list)  = armazenar_transicoes transicoes card_trans
+let transicoes  = armazenar_transicoes transicoes card_trans
 let palavra = scanf " %s" (fun palavra -> palavra) (* String final *)
 let length = String.length palavra  (*Nº de caracteres na palavra *)
 (*--------------------------------------------------------------------------------------------*)
 
-let rec num_vizinhosepsilon estado transicoes cont = (* Encontrar número de vizinhos *)
-  let (v1,v2) = estado in
-  match transicoes with
-       [] -> cont
-       | (a1,a2,a3,a4,a5,a6)::tl -> if a1 = v1 && a2 = '_' then num_vizinhos estado tl (cont+1) else num_vizinhos estado tl cont
+let rec num_vizinhosepsilon v1 transicoes cont = (* Encontrar número de vizinhos epsilon *)
+   match transicoes with
+      | [] -> cont
+      | (a1,a2,a3,a4,a5,a6)::tl -> if a1 = v1 && a2 = '_' then num_vizinhosepsilon v1 tl (cont+1) else num_vizinhosepsilon v1 tl cont
 
 let rec is_estadofinal estadofinal estado = (* Verificar se é estado final (se pertence à lista de estados finais)*)
     match estado with
@@ -70,29 +68,35 @@ let conversao_booleano operacao a b = (*Converter operacao por booleano -> Evita
     | "<=" -> a <= b
     | ">=" -> a >= b
     | _ -> false
-(* ---------------------Percorrer transições epsilon ----------------------------- *)
-let rec distribuicao_vizinhos estado anterior transicao =
-  let estado = obter_estadoepsilon estado [] transicao in
-  if estado <> anterior then 
-    let anterior = estado in distribuicao_vizinhos estado anterior transicao
-  else 
-    estado
 
-and obter_estadoepsilon estado vizinhos transicoes =
-  
+let rec comparar_estados estado anterior =      (* Comparar lista de estados atuais com a lista de estados anteriores *)
+  match estado with
+  | [] -> true
+  | (v1,v2)::resto -> if (List.mem (v1,v2) anterior) then comparar_estados resto anterior else false
+
+(* ---------------------Percorrer transições epsilon ----------------------------- *)
+let rec distribuicao_vizinhos estado anterior transicao =   (* Função para controlar quando chega ao último epsilon *)
+    let estado = obter_estadoepsilon estado [] transicao in
+    let () = print_estados anterior in 
+      if comparar_estados estado anterior = false then (* Se o estado anterior e o atual forem diferentes *) 
+        let anterior = estado in distribuicao_vizinhos estado anterior transicao
+      else 
+        estado
+
+and obter_estadoepsilon estado vizinhos transicoes =  
   match estado with 
   | []->  vizinhos
   | (v1,v2)::resto -> let vizinhos = if (List.mem (v1,v2) vizinhos) then vizinhos else vizinhos@[(v1,v2)] in
     let vizinhos = transicao_epsilon v1 v2 transicoes vizinhos in 
     obter_estadoepsilon resto vizinhos transicoes 
 
-and transicao_epsilon v1 v2 transicao vizinhos =  
+and transicao_epsilon v1 v2 transicao vizinhos =  (* Analisar todas as transições para o estado recebido *)
   match transicao with 
     | []->  vizinhos
     | (a1,a2,a3,a4,a5,a6)::restote -> 
-      let vizinhos = if( a2 = '_') && v1 = a1 
+      let vizinhos = if( a2 = '_') && v1 = a1   (* Caso seja epsilon *)
         then 
-          if a5=(-1) then 
+          if a5=(-1) then                       (* Caso não tenha valor a atualizar*)
             if (List.mem (a6,v2) vizinhos ) then
               vizinhos
             else
@@ -118,9 +122,9 @@ and transicao_possivel vizinhos transicao v1 v2 v3 palavra = (* Obter transiçõ
   match transicao with 
     | [] -> vizinhos
     | (a1,a2,a3,a4,a5,a6)::resto -> 
-      let vizinhos =  if v1 = a1 && (String.get palavra v3) = a2 && conversao_booleano a3 v2 a4 
+      let vizinhos =  if v1 = a1 && (String.get palavra v3) = a2 && conversao_booleano a3 v2 a4   (* String.get palavra v3 -> Ir à posicao v3 da palavra e verificar se a transição tem o caracter pretendido*)
         then  (* Verificar condições para poder usar transição*) 
-          if a5 = (-1) then
+          if a5 = (-1) then           (* Se não tiver nenhum valor para atualizar *)
             vizinhos@[(a6, v2)]
           else
             vizinhos@[(a6, a5)]  
@@ -130,8 +134,8 @@ and transicao_possivel vizinhos transicao v1 v2 v3 palavra = (* Obter transiçõ
              
 (*------------------------------------------------------------------------------ *)
 
-let rec main palavra estado transicoes length estadofinal v3 =
-  match estado with 
+let rec main palavra estado transicoes length estadofinal v3 =  (* Obter epsilons e depois caracteres até o index v3 ser do comprimento da palavra ou a lista de estados estar vazia*)
+  match estado with                                             (* v3 -> index representativo do caracter da palavra*)
   | [] -> let estado = distribuicao_vizinhos estado estado transicoes in 
           is_estadofinal estadofinal estado
   | _ -> if v3 = length then
